@@ -1,107 +1,50 @@
-import os 
-import ibmiotf.device
+import threading
 import time
 import json
+import datetime
+import ibmiotf.device
 import RPi.GPIO as GPIO
 import Adafruit_DHT
 import glob
 import sys
+import os
 import wiringpi
+import picamera
+import json
+import time
+import swiftclient
+import datetime
 
-class mcp():
+class Picture(threading.Thread):
 
     def __init__(self):
-        self.measurements = {}
-        
-        GPIO.setwarnings(False)
-        GPIO.setmode(GPIO.BCM)
-        
-        GPIO.setup(14, GPIO.OUT) # LED1 
-        GPIO.setup(15, GPIO.OUT) # LED2
-        #GPIO.setup(18, GPIO.OUT) # SERVO
-        #GPIO.setup(23, GPIO.OUT) # DHT OUT
-        #GPIO.setup(24, GPIO.OUT) # DHT IN
-        GPIO.setup(25, GPIO.OUT) # HUMIDITY
-        GPIO.setup( 8, GPIO.OUT) # FAN1
-        GPIO.setup( 7, GPIO.OUT) # FAN2
+        threading.Thread.__init__(self)
+        self.camera = picamera.PiCamera()
+        self.makepic = False
 
-        GPIO.output(14, False)
-        GPIO.output(15, False)
-        #GPIO.output(18, False)
-        #GPIO.output(23, False)
-        #GPIO.output(24, False)
-        GPIO.output(25, False)
-        GPIO.output( 8, False)
-        GPIO.output( 7, False)
+    def makePicture(self):
+        self.makepic = True
 
-        os.popen("gpio mode 1 pwm")	    
-        os.popen("gpio pwm-ms")
-        os.popen("gpio pwmc 1920")
-        os.popen("gpio pwmr 200")
+    def run(self):
+        while True:
+            if self.makepic:
+                camera.capture('image.jpg')
+                self.makepic = False
 
+class WaterTemp(threading.Thread):
+
+    def __init__(self):
+        threading.Thread.__init__(self)
         os.system('modprobe w1-gpio')
         os.system('modprobe w1-therm')
-
-        # hard pwm controll
-        # $ gpio mode 1 pwm
-        # $ gpio pwm-ms
-        # $ gpio pwmc 1920
-        # $ gpio pwmr 200     # 0.1 ms per unit
-        # $ gpio pwm 1 15     # 1.5 ms (0)
-        # $ gpio pwm 1 20     # 2.0 ms (+90)
-        # $ gpio pwm 1 10     # 1.0 ms (-90)
-  
-    def setHatch(self, value):
-        value += 10
-        os.popen("gpio pwm 1 %s"% value)	
-
-    def connectToIBMForPush(self):
-        self.client = ibmiotf.device.Client(json.load(open("config.txt")))
-        self.client.connect()
-        print "Connected to IBM for pushing"
-        self.client.commandCallback = self.myCommandCallback
-
-    def myCommandCallback(self, cmd):
-        print("Command received: %s" % cmd.data)
-        if cmd.command == "Fan":
-            if 'speed' not in cmd.data:
-                print("Error - command is missing required information: 'interval'")
-            else:
-                if cmd.data['speed'] > 0:
-            self.setFan(True)
-                else:
-                    self.setFan(False)
-        elif cmd.command == "Hum":
-            if 'intense' not in cmd.data:
-                print("Error - command is missing required information: 'message'")
-            else:
-                if cmd.data['intense'] > 0:
-                    self.setHumidifier(True)                
-                else:
-                    self.setHumidifier(False)
-        elif cmd.command == "Hatch":
-            if 'value' not in cmd.data:
-                print("Error - command is missing required information: 'message'")
-            else:
-                if cmd.data['value'] >= 0 and cmd.data['value'] <11:
-                    self.setHatch(cmd.data['value'])
-        else:
-            print(cmd.command)
-
-    def pushData(self):
-        self.measurements['test'] = 42
-        data = {}
-        data['v'] = self.measurements
-        self.client.publishEvent("Plant1", "json", data)
-        print "Data send:" + str(data)
+        self.temp_c = 0
 
     def read_temp_raw(self):
         f = open('/sys/bus/w1/devices/28-001454a22eff/w1_slave', 'r')
         lines = f.readlines()
         f.close()
-        return lines
- 
-    def getWaterTemp(self):
+
+    def aquireWaterTemp(self):
         lines = self.read_temp_raw()
         while lines[0].strip()[-3:] != 'YES':
             time.sleep(0.2)
@@ -109,68 +52,173 @@ class mcp():
         equals_pos = lines[1].find('t=')
         if equals_pos != -1:
             temp_string = lines[1][equals_pos+2:]
-            temp_c = float(temp_string) / 1000.0
-            self.measurements['WATER-Temp'] = temp_c
+            self.temp_c = float(temp_string) / 1000.0
 
-    def getGPUTemp(self):
-        res = os.popen('vcgencmd measure_temp').readline()
-        self.measurements['GPU-Temp'] = float(res.replace("temp=","").replace("'C\n",""))
+    def getWaterTemp(self):
+        return self.temp_c
 
-    def getCPUuse(self):
-        use = os.popen("top -n1 | awk '/Cpu\(s\):/ {print $2}'").readline().strip(\
-)
-    self.measurements['CPUuse'] = float(use)
+    def run(self):
+        while True:
+            self.aquireWaterTemp()
+            time.sleep(0.25)
+
+class SystemData(threading.Thread):
+
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.cpu_temp   = 0
+        self.gpu_temp   = 0
+        self.cpu_use    = 0
+        self.load_level = 0
 
     def getCPUTemp(self):
-        tempFile = open( "/sys/class/thermal/thermal_zone0/temp" )  
-        cpu_temp = tempFile.read()  
-        tempFile.close()  
-        self.measurements['CPU-Temp'] = float(cpu_temp)/1000 
+        return self.cpu_temp
 
-    def setLedIN(self, value):
-        GPIO.output(14, value)
+    def getGPUTemp(self):
+        return self.gpu_temp
 
-    def setLedOUT(self, value):
-        GPIO.output(15, value)
+    def getCPUuse(self):
+        return self.cpu_use
 
     def getLoadLevel(self):
+        return self.load_level
+
+    def aquireData(self):
+        # CPU Temp
+        tempFile = open( "/sys/class/thermal/thermal_zone0/temp" )
+        cpu_temp = tempFile.read()
+        tempFile.close()
+        self.cpu_temp = float(cpu_temp)/1000
+        #GPU Temp
+        res = os.popen('vcgencmd measure_temp').readline()
+        self.gpu_temp = float(res.replace("temp=","").replace("'C\n",""))
+        #CPU use
+        use = os.popen("top -n1 | awk '/Cpu\(s\):/ {print $2}'").readline().strip(\
+            )
+        self.cpu_use = float(use)
+        #LoadLevel
         ll = os.popen("uptime | cut -d \":\"  -f 4 | cut -d \",\" -f 1").readline().strip()
-        self.measurements['LoadLevel'] = float(ll) 
+        self.load_level = float(ll)
+        time.sleep(0.25)
 
-    def getTempAndHumidityOUT(self):
-        humidity, temperature = Adafruit_DHT.read_retry(22, 23)
-        self.measurements['ENV-Temp'] = temperature
-        self.measurements['ENV-Humidity'] = humidity
+    def run(self):
+        while True:
+            self.aquireData()
+            time.sleep(0.25)
 
-    def getTempAndHumidityIN(self):
-        humidity, temperature = Adafruit_DHT.read_retry(22, 24)
-        self.measurements['PROBE-Temp'] = temperature
-        self.measurements['PROBE-Humidity'] = humidity
+class OutsideSensor(threading.Thread):
 
-    def gatherData(self):
-        self.getCPUTemp()
-        self.getGPUTemp()
-        self.getLoadLevel()
-        self.getCPUuse()
-        self.getWaterTemp()
-        self.getTempAndHumidityOUT()
-        self.getTempAndHumidityIN()
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.temperature = 0
+        self.humidity    = 0
 
-    def setINFan(self, value):
-        GPIO.output(7, value)
+    def getTemperature(self):
+        return self.temperature
 
-    def setOUTFan(self, value):
-        GPIO.output(8, value)
+    def getHumidity(self):
+        return self.humidity
 
-    def setHumidifier(self, value):
-        GPIO.output(25, value)
+    def run(self):
+        while True:
+            self.humidity, self.temperature = Adafruit_DHT.read_retry(22, 23)
+            time.sleep(0.25)
+
+class InsideSensor(threading.Thread):
+
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def getTemperature(self):
+        return self.humidity
+
+    def getHumidity(self):
+        return self.temperature
+
+    def run(self):
+        while True:
+            self.humidity, self.temperature = Adafruit_DHT.read_retry(22, 24)
+            time.sleep(0.25)
+
+def connectToIBM():
+    client = ibmiotf.device.Client(json.load(open("clientconfig.txt")))
+    client.connect()
+    return client
+
+def pushDataToIBM(data):
+    pass
+
+def persistData(data):
+    pass
 
 if __name__ == '__main__':
-    print "Running"
-    m = mcp()
-    m.connectToIBMForPush()
-   
-    while True:
-        m.gatherData()
-        m.pushData()
+    print "MS HAL"
+
+    GPIO.setwarnings(False)
+    GPIO.setmode(GPIO.BCM)
+
+    GPIO.setup(14, GPIO.OUT)  # LED1
+    GPIO.setup(15, GPIO.OUT)  # LED2
+    # GPIO.setup(18, GPIO.OUT) # SERVO
+    # GPIO.setup(23, GPIO.OUT) # DHT OUT
+    # GPIO.setup(24, GPIO.OUT) # DHT IN
+    GPIO.setup(25, GPIO.OUT)  # HUMIDITY
+    GPIO.setup(8, GPIO.OUT)  # FAN1
+    GPIO.setup(7, GPIO.OUT)  # FAN2
+
+    GPIO.output(14, False)
+    GPIO.output(15, False)
+    # GPIO.output(18, False)
+    # GPIO.output(23, False)
+    # GPIO.output(24, False)
+    GPIO.output(25, False)
+    GPIO.output(8, False)
+    GPIO.output(7, False)
+
+    os.popen("gpio mode 1 pwm")
+    os.popen("gpio pwm-ms")
+    os.popen("gpio pwmc 1920")
+    os.popen("gpio pwmr 200")
+
+    client = connectToIBM()
+    # client.commandCallback = self.myCommandCallback
+
+    waterTemp = WaterTemp()
+    waterTemp.setDaemon(True)
+    waterTemp.start()
+
+    systemData = SystemData()
+    systemData.setDaemon(True)
+    systemData.start()
+
+    outsideSensor = OutsideSensor()
+    outsideSensor.setDaemon(True)
+    outsideSensor.start()
+
+    insideSensor = InsideSensor()
+    insideSensor.setDaemon(True)
+    insideSensor.start()
+
+    picture = Picture()
+    picture.setDaemon(True)
+    picture.start()
+
+    measurements = {}
+
+    for i in range(10):
+        print "Tick"
+
+        measurements['Timestamp']                = time.time()
+        measurements['WaterTemp']                = waterTemp.getWaterTemp()
+        measurements['SystemCPUTemp']            = systemData.getCPUTemp()
+        measurements['SystemGPUTemp']            = systemData.getGPUTemp()
+        measurements['SystemLoadLevel']          = systemData.getLoadLevel()
+        measurements['SystemCPUUse']             = systemData.getCPUuse()
+        measurements['OutsideSensorTemperature'] = outsideSensor.getTemperature()
+        measurements['OutsideSensorHumidity']    = outsideSensor.getHumidity()
+        measurements['InsideSensorTemperature']  = insideSensor.getTemperature()
+        measurements['InsideSensorHumidity']     = insideSensor.getHumidity()
+
+        pushDataToIBM(measurements)
+        persistData(measurements)
         time.sleep(1)

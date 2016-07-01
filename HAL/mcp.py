@@ -15,8 +15,8 @@ import time
 import swiftclient
 import datetime
 
-class Picture(threading.Thread):
 
+class Picture(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.camera = picamera.PiCamera()
@@ -31,8 +31,8 @@ class Picture(threading.Thread):
                 camera.capture('image.jpg')
                 self.makepic = False
 
-class WaterTemp(threading.Thread):
 
+class WaterTemp(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         os.system('modprobe w1-gpio')
@@ -51,7 +51,7 @@ class WaterTemp(threading.Thread):
             lines = read_temp_raw()
         equals_pos = lines[1].find('t=')
         if equals_pos != -1:
-            temp_string = lines[1][equals_pos+2:]
+            temp_string = lines[1][equals_pos + 2:]
             self.temp_c = float(temp_string) / 1000.0
 
     def getWaterTemp(self):
@@ -62,13 +62,13 @@ class WaterTemp(threading.Thread):
             self.aquireWaterTemp()
             time.sleep(0.25)
 
-class SystemData(threading.Thread):
 
+class SystemData(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
-        self.cpu_temp   = 0
-        self.gpu_temp   = 0
-        self.cpu_use    = 0
+        self.cpu_temp = 0
+        self.gpu_temp = 0
+        self.cpu_use = 0
         self.load_level = 0
 
     def getCPUTemp(self):
@@ -85,18 +85,18 @@ class SystemData(threading.Thread):
 
     def aquireData(self):
         # CPU Temp
-        tempFile = open( "/sys/class/thermal/thermal_zone0/temp" )
+        tempFile = open("/sys/class/thermal/thermal_zone0/temp")
         cpu_temp = tempFile.read()
         tempFile.close()
-        self.cpu_temp = float(cpu_temp)/1000
-        #GPU Temp
+        self.cpu_temp = float(cpu_temp) / 1000
+        # GPU Temp
         res = os.popen('vcgencmd measure_temp').readline()
-        self.gpu_temp = float(res.replace("temp=","").replace("'C\n",""))
-        #CPU use
-        use = os.popen("top -n1 | awk '/Cpu\(s\):/ {print $2}'").readline().strip(\
+        self.gpu_temp = float(res.replace("temp=", "").replace("'C\n", ""))
+        # CPU use
+        use = os.popen("top -n1 | awk '/Cpu\(s\):/ {print $2}'").readline().strip( \
             )
         self.cpu_use = float(use)
-        #LoadLevel
+        # LoadLevel
         ll = os.popen("uptime | cut -d \":\"  -f 4 | cut -d \",\" -f 1").readline().strip()
         self.load_level = float(ll)
         time.sleep(0.25)
@@ -106,12 +106,12 @@ class SystemData(threading.Thread):
             self.aquireData()
             time.sleep(0.25)
 
-class OutsideSensor(threading.Thread):
 
+class OutsideSensor(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.temperature = 0
-        self.humidity    = 0
+        self.humidity = 0
 
     def getTemperature(self):
         return self.temperature
@@ -124,8 +124,8 @@ class OutsideSensor(threading.Thread):
             self.humidity, self.temperature = Adafruit_DHT.read_retry(22, 23)
             time.sleep(0.25)
 
-class InsideSensor(threading.Thread):
 
+class InsideSensor(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
 
@@ -140,16 +140,20 @@ class InsideSensor(threading.Thread):
             self.humidity, self.temperature = Adafruit_DHT.read_retry(22, 24)
             time.sleep(0.25)
 
+
 def connectToIBM():
     client = ibmiotf.device.Client(json.load(open("clientconfig.txt")))
     client.connect()
     return client
 
+
 def pushDataToIBM(data):
     pass
 
+
 def persistData(data):
     pass
+
 
 if __name__ == '__main__':
     print "MS HAL"
@@ -208,16 +212,16 @@ if __name__ == '__main__':
     for i in range(10):
         print "Tick"
 
-        measurements['Timestamp']                = time.time()
-        measurements['WaterTemp']                = waterTemp.getWaterTemp()
-        measurements['SystemCPUTemp']            = systemData.getCPUTemp()
-        measurements['SystemGPUTemp']            = systemData.getGPUTemp()
-        measurements['SystemLoadLevel']          = systemData.getLoadLevel()
-        measurements['SystemCPUUse']             = systemData.getCPUuse()
+        measurements['Timestamp'] = time.time()
+        measurements['WaterTemp'] = waterTemp.getWaterTemp()
+        measurements['SystemCPUTemp'] = systemData.getCPUTemp()
+        measurements['SystemGPUTemp'] = systemData.getGPUTemp()
+        measurements['SystemLoadLevel'] = systemData.getLoadLevel()
+        measurements['SystemCPUUse'] = systemData.getCPUuse()
         measurements['OutsideSensorTemperature'] = outsideSensor.getTemperature()
-        measurements['OutsideSensorHumidity']    = outsideSensor.getHumidity()
-        measurements['InsideSensorTemperature']  = insideSensor.getTemperature()
-        measurements['InsideSensorHumidity']     = insideSensor.getHumidity()
+        measurements['OutsideSensorHumidity'] = outsideSensor.getHumidity()
+        measurements['InsideSensorTemperature'] = insideSensor.getTemperature()
+        measurements['InsideSensorHumidity'] = insideSensor.getHumidity()
 
         pushDataToIBM(measurements)
         persistData(measurements)

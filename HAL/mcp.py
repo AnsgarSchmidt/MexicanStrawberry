@@ -19,20 +19,20 @@ import datetime
 import json
 import urllib2
 
-PIN_DALLAS      =  4
-PIN_LED_1       =  7
-PIN_LED_2       =  8
-PIN_BUTTON      = 12
-PIN_HUMIDIFIER  = 16
-PIN_ENABLE      = 17
-PIN_SERVO       = 18
-PIN_FAN_1       = 20
-PIN_FAN_2       = 21
-PIN_DIRECTION   = 22
-PIN_INSIDE_AIR  = 23
-PIN_OUTSIDE_AIR = 24
-PIN_STEPPEN_END = 25
-PIN_STEP        = 27
+PIN_DALLAS         =  4
+PIN_LED_1          =  7
+PIN_LED_2          =  8
+PIN_BUTTON_SILENCE = 12
+PIN_HUMIDIFIER     = 16
+PIN_ENABLE         = 17
+PIN_SERVO          = 18
+PIN_FAN_1          = 20
+PIN_FAN_2          = 21
+PIN_DIRECTION      = 22
+PIN_INSIDE_AIR     = 23
+PIN_OUTSIDE_AIR    = 24
+PIN_STEPPER_END    = 25
+PIN_STEP           = 27
 
 class Picture(threading.Thread):
 
@@ -397,15 +397,22 @@ class Stepper(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.timeToKeepOn =   0
-        self.status       =   0 # 0->OFF 1->CW 2->CCW
-        self.counter      =  -1 # -1 undefined so we need to calibrate
+        self.status       =   0
+        self.direction    = False
+        self.counter      = -10 # -1 undefined so we need to calibrate
         self.MAX          = 100 # Max steps in one direction
-        GPIO.output(PIN_ENABLE,    True ) # inverted
-        GPIO.output(PIN_DIRECTION, False)
-        GPIO.output(PIN_STEP,      False)
+        GPIO.output(PIN_ENABLE,    True          ) # inverted therefore we switch it off
+        GPIO.output(PIN_DIRECTION, self.direction)
+        GPIO.output(PIN_STEP,      False         )
         self.calibrate()
 
     def calibrate(self):
+        GPIO.output(PIN_ENABLE, False)  # inverted therefore we switch it on
+        while not GPIO.input(PIN_STEPPER_END):
+            GPIO.output(PIN_STEP,   True )  # 1 mycro second are enough therefore no sleep
+            GPIO.output(PIN_STEP,   False)
+            time.sleep(0.1)
+        GPIO.output(PIN_ENABLE, True)  # inverted therefore we switch it off
         self.counter = 0
 
     def setTime(self, timeToAdd):
@@ -414,21 +421,35 @@ class Stepper(threading.Thread):
     def getState(self):
         return self.status
 
+    def step(self):
+        GPIO.output(PIN_STEP, True)   # 1 mycro second are enough therefore no sleep
+        GPIO.output(PIN_STEP, False)
+
+        if self.direction and self.counter >= self.MAX:
+            self.direction = False
+            GPIO.output(PIN_DIRECTION, self.direction)
+
+        if not self.direction and self.counter <= 0:
+            self.direction = True
+            GPIO.output(PIN_DIRECTION, self.direction)
+
     def run(self):
         while True:
 
-            if self.counter == -1:
+            if self.counter == -10: # If we are not calibrated do nothing
+                time.sleep(1)
                 continue
 
             if self.timeToKeepOn > time.time():
-                GPIO.output(PIN_ENABLE, True)
-                if self.counter >= 0 and self.counter < self.MAX:
-
+                GPIO.output(PIN_ENABLE, False) #inverted
                 self.status = 1
+                self.step()
+                time.sleep(0.1) # Speed
             else:
-                GPIO.output(PIN_ENABLE, False)
+                GPIO.output(PIN_ENABLE, True) #inverted
                 self.status = 0
                 time.sleep(1) # wait for a longer time when off
+
 
 class Hatch():
 
@@ -562,20 +583,20 @@ if __name__ == '__main__':
     print " 1.Setting GPIOs"
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BCM)
-    # GPIO.setup(PIN_DALLAS,      GPIO.IN)
-    GPIO.setup(PIN_ENABLE,        GPIO.OUT)
-    GPIO.setup(PIN_STEP,          GPIO.OUT)
-    GPIO.setup(PIN_DIRECTION,     GPIO.OUT)
-    GPIO.setup(PIN_STEPPEN_END,   GPIO.IN )
-    # GPIO.setup(PIN_SERVO,       GPIO.OUT)
-    # GPIO.setup(PIN_OUTSIDE_AIR, GPIO.OUT)
-    # GPIO.setup(PIN_INSIDE_AIR,  GPIO.OUT)
-    GPIO.setup(PIN_LED_1,         GPIO.OUT)
-    GPIO.setup(PIN_LED_2,         GPIO.OUT)
-    GPIO.setup(PIN_BUTTON,        GPIO.IN )
-    GPIO.setup(PIN_HUMIDIFIER,    GPIO.OUT)
-    GPIO.setup(PIN_FAN_1,         GPIO.OUT)
-    GPIO.setup(PIN_FAN_2,         GPIO.OUT)
+    # GPIO.setup(PIN_DALLAS,       GPIO.IN)
+    GPIO.setup(PIN_ENABLE,         GPIO.OUT)
+    GPIO.setup(PIN_STEP,           GPIO.OUT)
+    GPIO.setup(PIN_DIRECTION,      GPIO.OUT)
+    GPIO.setup(PIN_STEPPER_END,    GPIO.IN )
+    # GPIO.setup(PIN_SERVO,        GPIO.OUT)
+    # GPIO.setup(PIN_OUTSIDE_AIR,  GPIO.OUT)
+    # GPIO.setup(PIN_INSIDE_AIR,   GPIO.OUT)
+    GPIO.setup(PIN_LED_1,          GPIO.OUT)
+    GPIO.setup(PIN_LED_2,          GPIO.OUT)
+    GPIO.setup(PIN_BUTTON_SILENCE, GPIO.IN )
+    GPIO.setup(PIN_HUMIDIFIER,     GPIO.OUT)
+    GPIO.setup(PIN_FAN_1,          GPIO.OUT)
+    GPIO.setup(PIN_FAN_2,          GPIO.OUT)
     time.sleep(1)
 
     print " 2. Setting pwm"
@@ -649,12 +670,18 @@ if __name__ == '__main__':
     hatch = Hatch()
     time.sleep(1)
 
-    print "14. Starting Watertemp Thread"
+    print "14. Connecting to IoTf"
     client = connectToIBM()
     client.commandCallback = commandCallback
     time.sleep(1)
 
-    print "15. Starting MainLoop"
+    print "15. Starting Stepper Thread"
+    stepper = Stepper()
+    stepper.setDaemon(True)
+    stepper.start()
+    time.sleep(1)
+
+    print "16. Starting MainLoop"
     while True:
         measurements['Timestamp'] = time.time()
         measurements['WaterTemp'] = waterTemp.getWaterTemp()
@@ -679,4 +706,5 @@ if __name__ == '__main__':
 
         pushDataToIBM(client, measurements)
         persistor.persist(measurements)
+
         time.sleep(1)

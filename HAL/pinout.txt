@@ -1,0 +1,20 @@
+           3.3  O O 5V
+           SDA  O O 5V
+           SCL  O O GND
+Dallas     G04  O O TX
+           GND  O O RX
+Enable     G17  O O G18    Servo
+Step       G27  O O GND
+Direction  G22  O O G23    Inside Sensor Air ??
+           3.3  O O G24    Outside  Sensor Air ??
+           MOSI O O GND
+           MISO O O G25    Stepper End Sensor
+           CLK  O O G08    Led 2
+           GND  O O G07    Led 1
+           NC   O O NC
+           G05  O O GND
+           G06  O O G12    Button Silence
+           G13  O O GND
+           G19  O O G16    Humidifier
+           G26  O O G20    Fan 2
+           GND  O O G21    Fan 1

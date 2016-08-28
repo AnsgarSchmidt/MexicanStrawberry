@@ -105,7 +105,9 @@ class CSVPersistor(threading.Thread):
                          'OutsideFan',
                          'InsideFan',
                          'Humidifier',
-                         'Hatch'
+                         'Hatch',
+                         'Stepper',
+                         'StepperPosition'
                     ]
                     spamwriter.writerow(d)
 
@@ -135,7 +137,9 @@ class CSVPersistor(threading.Thread):
                          m['OutsideFan'],
                          m['InsideFan'],
                          m['Humidifier'],
-                         m['Hatch']
+                         m['Hatch'],
+                         m['Stepper'],
+                         m['StepperPosition']
                     ]
                     spamwriter.writerow(d)
                 self.q.task_done()

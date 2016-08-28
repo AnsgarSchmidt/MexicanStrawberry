@@ -9,6 +9,7 @@ from CSVPersistor         import CSVPersistor
 from TimedDigitalActuator import TimedDigitalActuator
 from Hatch                import Hatch
 from Picture              import Picture
+from Stepper              import Stepper
 
 def commandCallback(cmd):
 
@@ -38,6 +39,12 @@ def commandCallback(cmd):
             else:
                 if cmd.data['value'] >= 0 and cmd.data['value'] <= 1:
                     hatch.setHatch(cmd.data['value'])
+
+        elif cmd.command == "Stepper":
+            if 'time' not in cmd.data:
+                print("Error - Stepper is missing required information: 'time'")
+            else:
+                stepper.setTime(cmd.data['time'])
 
         elif cmd.command == "Picture":
             picture.makePicture()
@@ -76,6 +83,8 @@ if __name__ == '__main__':
     time.sleep(1)
     hatch = Hatch()
     time.sleep(1)
+    stepper = Stepper()
+    time.sleep(1)
 
     #picture
     picture = Picture("Plant1")
@@ -103,6 +112,8 @@ if __name__ == '__main__':
         m['InsideFan']               = insideFan.getState()
         m['Humidifier']              = humidifier.getState()
         m['Hatch']                   = hatch.getHatch()
+        m['Stepper']                 = stepper.getState()
+        m['StepperPosition']         = stepper.getCounter()
         iotfClient.pushDataToIBM(m)
         csvPersistor.persist(m)
         time.sleep(1)

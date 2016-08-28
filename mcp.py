@@ -54,14 +54,6 @@ client.subscribeToDeviceEvents(deviceId="Plant1")
 
 time.sleep(1)
 
-for i in range(10):
-    setHatch(0.1 * i)
-    time.sleep(1)
-
-setOUTFan(5)
-time.sleep(2)
-setINFan(6)
-time.sleep(2)
 setHumidifier(2)
 
 time.sleep(10)

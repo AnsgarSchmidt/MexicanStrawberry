@@ -65,7 +65,7 @@ if __name__ == '__main__':
     while True:
         now = datetime.datetime.now()
         m = {}
-        m['Timestamp']               = "%d-%d-%d-%d-%d-%d.jpg" % (now.year, now.month, now.day, now.hour, now.minute, now.second)
+        m['Timestamp']               = "%d-%d-%d-%d-%d-%d" % (now.year, now.month, now.day, now.hour, now.minute, now.second)
         m['Watertemperature']        = waterTemperature.getWaterTemp()
         m['InsideHumidity']          = airInside.getHumidity()
         m['InsideTemperature']       = airInside.getTemperature()

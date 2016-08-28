@@ -79,3 +79,7 @@ class Picture(threading.Thread):
 if __name__ == '__main__':
 
     print "Testing Campera"
+    p = Picture()
+    p.start()
+    p.makePicture()
+    time.sleep(100)

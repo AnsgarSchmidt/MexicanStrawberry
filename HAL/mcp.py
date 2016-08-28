@@ -1,9 +1,11 @@
 import time
+import datetime
 from IBMConnector import IBMConnector
 from Dallas       import Dallas
 from DHT          import DHT
 from SystemData   import SystemData
 from Weather      import Weather
+from CSVPersistor import CSVPersistor
 
 def commandCallback(cmd):
         print("Command received: %s" % cmd.command)
@@ -42,8 +44,13 @@ def commandCallback(cmd):
 if __name__ == '__main__':
     print "MS HAL start"
 
+    #Connectors
     iotfClient       = IBMConnector(commandCallback)
     time.sleep(1)
+    csvPersistor     = CSVPersistor()
+    time.sleep(1)
+
+    #Sensors
     waterTemperature = Dallas()
     time.sleep(1)
     airInside        = DHT(23)
@@ -56,7 +63,9 @@ if __name__ == '__main__':
     time.sleep(1)
 
     while True:
+        now = datetime.datetime.now()
         m = {}
+        m['Timestamp']               = "%d-%d-%d-%d-%d-%d.jpg" % (now.year, now.month, now.day, now.hour, now.minute, now.second)
         m['Watertemperature']        = waterTemperature.getWaterTemp()
         m['InsideHumidity']          = airInside.getHumidity()
         m['InsideTemperature']       = airInside.getTemperature()
@@ -74,4 +83,5 @@ if __name__ == '__main__':
         m['WeatherPreciptionHourly'] = weather.getPrecipHrly()
 
         iotfClient.pushDataToIBM(m)
+        csvPersistor.persist(m)
         time.sleep(1)

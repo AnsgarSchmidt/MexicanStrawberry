@@ -1,6 +1,7 @@
 import threading
 import json
 import swiftclient
+import picamera
 import time
 
 class Picture(threading.Thread):

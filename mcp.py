@@ -16,7 +16,7 @@ def myEventCallback(event):
   str = "%s event '%s' received from device [%s]: %s"
   #print(str % (event.format, event.event, event.device, json.dumps(event.data)))
   measurement = event.data['d']
-  print "%02.1f - Hum:%d - Hatch:%d - OUT:%d - IN%d" % (measurement['InsideHumidity'],measurement['Humidifier'],measurement['Hatch'],measurement['OutsideFan'],measurement['InsideFan'])
+  print "%02.1f - Hum:%d - Hatch:%1.1f - OUT:%d - IN%d" % (measurement['InsideHumidity'],measurement['Humidifier'],measurement['Hatch'],measurement['OutsideFan'],measurement['InsideFan'])
 
 def myStatusCallback(status):
   if status.action == "Disconnect":
@@ -28,27 +28,22 @@ def myStatusCallback(status):
 def picture():
     commandData = {'value': 7}
     client.publishCommand("RPi", "Plant1", "Picture", "json", commandData)
-    time.sleep(1)
 
 def setHatch(value):
     commandData = {'value': value}
     client.publishCommand("RPi", "Plant1", "Hatch", "json", commandData)
-    time.sleep(1)
 
 def setHumidifier(value):
     commandData = {'time': value}
     client.publishCommand("RPi", "Plant1", "Humidifier", "json", commandData)
-    time.sleep(1)
 
 def setINFan(value):
     commandData = {'time': value}
     client.publishCommand("RPi", "Plant1", "FanIN", "json", commandData)
-    time.sleep(1)
 
 def setOUTFan(value):
     commandData = {'time': value}
     client.publishCommand("RPi", "Plant1", "FanOUT", "json", commandData)
-    time.sleep(1)
 
 client = ibmiotf.application.Client(options)
 client.connect()
@@ -59,6 +54,14 @@ client.subscribeToDeviceEvents(deviceId="Plant1")
 
 time.sleep(1)
 
+for i in range(10):
+    setHatch(0.1 * i)
+    time.sleep(1)
+
 setOUTFan(5)
+time.sleep(2)
+setINFan(6)
+time.sleep(2)
+setHumidifier(2)
 
 time.sleep(10)

@@ -78,7 +78,7 @@ class Stepper(threading.Thread):
                 GPIO.output(PIN_ENABLE, False) #inverted
                 self.status = 1
                 self.step()
-                time.sleep(0.01) # Speed
+                time.sleep(0.1) # Speed
             else:
                 GPIO.output(PIN_ENABLE, True) #inverted
                 self.status = 0

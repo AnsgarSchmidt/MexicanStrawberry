@@ -11,8 +11,7 @@ class Picture(threading.Thread):
     def __init__(self, id):
         threading.Thread.__init__(self)
         self.setDaemon(True)
-        self.camera = picamera.PiCamera()
-        self.makepic = False
+        self.makepic        = False
         self.container_name = 'MexicanStrawberryPictures-' + id
 
         objectstorage_creds = json.load(open("config.txt"))['Object-Storage'][0]['credentials']
@@ -57,12 +56,14 @@ class Picture(threading.Thread):
         self.makepic = True
 
     def run(self):
+
         while self.configOK:
+
             if self.makepic:
                 self.makepic = False
                 now = datetime.datetime.now()
                 file_name = "%d-%d-%d-%d-%d-%d.jpg" % (now.year, now.month, now.day, now.hour, now.minute, now.second)
-                self.camera.capture(file_name)
+                picamera.PiCamera().capture(file_name)
                 self.checkContainer()
                 conn = self.getSwiftConnection()
                 with open(file_name, 'r') as file:

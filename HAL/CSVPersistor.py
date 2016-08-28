@@ -9,6 +9,31 @@ import swiftclient
 
 class CSVPersistor(threading.Thread):
 
+    def __init__(self, id):
+
+        threading.Thread.__init__(self)
+        self.setDaemon(True)
+        self.q = Queue.Queue()
+        self.container_name = 'MexicanStrawberry-' + id
+
+        objectstorage_creds = json.load(open("config.txt"))['Object-Storage'][0]['credentials']
+
+        if objectstorage_creds:
+            self.auth_url    = objectstorage_creds['auth_url' ] + '/v3'
+            self.password    = objectstorage_creds['password' ]
+            self.project_id  = objectstorage_creds['projectId']
+            self.user_id     = objectstorage_creds['userId'   ]
+            self.region_name = objectstorage_creds['region'   ]
+            self.configOK    = True
+        else:
+            self.configOK    = False
+            print "Error in configuration for swift client"
+
+        now = datetime.datetime.now()
+        self.file_name = "%d-%d-%d-%d.csv" % (now.year, now.month, now.day, now.hour)
+        self.start()
+
+
     def getSwiftConnection(self):
         return swiftclient.Connection(key          = self.password,
                                       authurl      = self.auth_url,
@@ -31,29 +56,6 @@ class CSVPersistor(threading.Thread):
             print "Creating container"
 
         conn.close() # we get it every time to be safe against network problems
-
-    def __init__(self, id):
-        threading.Thread.__init__(self)
-        self.setDaemon(True)
-        self.q = Queue.Queue()
-        self.container_name = 'MexicanStrawberry-' + id
-
-        objectstorage_creds = json.load(open("config.txt"))['Object-Storage'][0]['credentials']
-
-        if objectstorage_creds:
-            self.auth_url    = objectstorage_creds['auth_url' ] + '/v3'
-            self.password    = objectstorage_creds['password' ]
-            self.project_id  = objectstorage_creds['projectId']
-            self.user_id     = objectstorage_creds['userId'   ]
-            self.region_name = objectstorage_creds['region'   ]
-            self.configOK    = True
-        else:
-            self.configOK    = False
-            print "Error in configuration for swift client"
-
-        now = datetime.datetime.now()
-        self.file_name = "%d-%d-%d-%d.csv" % (now.year, now.month, now.day, now.hour)
-        self.start()
 
     def persist(self, measurements):
         self.q.put(measurements)

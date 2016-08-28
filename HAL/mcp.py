@@ -1,11 +1,12 @@
 import time
 import datetime
-from IBMConnector import IBMConnector
-from Dallas       import Dallas
-from DHT          import DHT
-from SystemData   import SystemData
-from Weather      import Weather
-from CSVPersistor import CSVPersistor
+from IBMConnector         import IBMConnector
+from Dallas               import Dallas
+from DHT                  import DHT
+from SystemData           import SystemData
+from Weather              import Weather
+from CSVPersistor         import CSVPersistor
+from TimedDigitalActuator import TimedDigitalActuator
 
 def commandCallback(cmd):
         print("Command received: %s" % cmd.command)
@@ -46,7 +47,7 @@ if __name__ == '__main__':
 
     #Connectors
     iotfClient       = IBMConnector(commandCallback)
-    time.sleep(1)
+    time.sleep(2)
     csvPersistor     = CSVPersistor("Plant1")
     time.sleep(1)
 
@@ -60,6 +61,14 @@ if __name__ == '__main__':
     systemData       = SystemData()
     time.sleep(1)
     weather          = Weather()
+    time.sleep(1)
+
+    #Actuators
+    outsideFan = TimedDigitalActuator(21)
+    time.sleep(1)
+    insideFan  = TimedDigitalActuator(20)
+    time.sleep(1)
+    humidifier = TimedDigitalActuator(16)
     time.sleep(1)
 
     while True:
@@ -81,7 +90,9 @@ if __name__ == '__main__':
         m['WeatherUV']               = weather.getUV()
         m['WeatherPreciptionTotal']  = weather.getPrecipTotal()
         m['WeatherPreciptionHourly'] = weather.getPrecipHrly()
-
+        m['OutsideFan']              = outsideFan.getState()
+        m['InsideFan']               = insideFan.getState()
+        m['Humidifier']              = humidifier.getState()
         iotfClient.pushDataToIBM(m)
         csvPersistor.persist(m)
         time.sleep(1)

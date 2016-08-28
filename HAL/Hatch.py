@@ -9,6 +9,7 @@ class Hatch():
         os.popen("gpio pwm-ms")
         os.popen("gpio pwmc 1920")
         os.popen("gpio pwmr 200")
+        self.setHatch(0)
 
     def getHatch(self):
         return self.hatch

@@ -4,12 +4,12 @@ import time
 class Hatch():
 
     def __init__(self):
-        self.hatch = 0
+        self.hatch = 0.0
         os.popen("gpio mode 1 pwm")
         os.popen("gpio pwm-ms")
         os.popen("gpio pwmc 1920")
         os.popen("gpio pwmr 200")
-        self.setHatch(0)
+        self.setHatch(0.0)
 
     def getHatch(self):
         return self.hatch

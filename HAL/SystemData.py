@@ -42,8 +42,8 @@ class SystemData(threading.Thread):
         self.cpu_use = float(use)
 
         # LoadLevel
-        #ll = os.popen("uptime | cut -d \":\"  -f 5 | cut -d \",\" -f 1").readline().strip()
-        #self.load_level = float(ll)
+        ll = os.popen("uptime | cut -d \":\"  -f 5 | cut -d \",\" -f 1").readline().strip()
+        self.load_level = float(ll)
         time.sleep(1)
 
     def run(self):

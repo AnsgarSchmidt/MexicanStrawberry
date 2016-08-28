@@ -141,6 +141,7 @@ if __name__ == '__main__':
         m['Hatch']                   = hatch.getHatch()
         m['Stepper']                 = stepper.getState()
         m['StepperPosition']         = stepper.getCounter()
+        m['AllOff']                  = alloff
         iotfClient.pushDataToIBM(m)
         csvPersistor.persist(m)
         time.sleep(1)

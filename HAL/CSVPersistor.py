@@ -107,7 +107,8 @@ class CSVPersistor(threading.Thread):
                          'Humidifier',
                          'Hatch',
                          'Stepper',
-                         'StepperPosition'
+                         'StepperPosition',
+                         'AllOff'
                     ]
                     spamwriter.writerow(d)
 
@@ -139,7 +140,8 @@ class CSVPersistor(threading.Thread):
                          m['Humidifier'],
                          m['Hatch'],
                          m['Stepper'],
-                         m['StepperPosition']
+                         m['StepperPosition'],
+                         m['AllOff']
                     ]
                     spamwriter.writerow(d)
                 self.q.task_done()

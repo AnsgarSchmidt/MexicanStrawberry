@@ -16,6 +16,9 @@ def commandCallback(cmd):
 
         print("Command received: %s" % cmd.command)
 
+        if alloff:
+            return
+
         if cmd.command == "FanIN":
             if 'time' not in cmd.data:
                 print("Error - FanIN is missing required information: 'time'")
@@ -95,6 +98,7 @@ if __name__ == '__main__':
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     timeToSilence = 0
+    alloff = False
 
     while True:
 
@@ -109,6 +113,9 @@ if __name__ == '__main__':
             outsideFan.setTime(0)
             humidifier.setTime(0)
             stepper.setTime(0)
+            alloff = True
+        else:
+            alloff = False
 
         now = datetime.datetime.now()
         m = {}

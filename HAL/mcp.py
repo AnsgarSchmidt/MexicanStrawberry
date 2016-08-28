@@ -2,6 +2,7 @@ import time
 from IBMConnector import IBMConnector
 from Dallas       import Dallas
 from DHT          import DHT
+from SystemData   import SystemData
 
 def commandCallback(cmd):
         print("Command received: %s" % cmd.command)
@@ -44,6 +45,7 @@ if __name__ == '__main__':
     waterTemperature = Dallas()
     airInside        = DHT(23)
     airOutside       = DHT(24)
+    systemData       = SystemData()
 
     while True:
         m = {}
@@ -52,5 +54,9 @@ if __name__ == '__main__':
         m['InsideTemperature']  = airInside.getTemperature()
         m['OutsideHumidity']    = airOutside.getHumidity()
         m['OutsideTemperature'] = airOutside.getTemperature()
+        m['CPUTemperature']     = systemData.getCPUTemp()
+        m['GPUTemperature']     = systemData.getGPUTemp()
+        m['CPUUsage']           = systemData.getCPUuse()
+        m['Loadlevel']          = systemData.getLoadLevel()
         iotfClient.pushDataToIBM(m)
         time.sleep(1)

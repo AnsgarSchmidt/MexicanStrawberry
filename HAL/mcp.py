@@ -47,7 +47,7 @@ if __name__ == '__main__':
     #Connectors
     iotfClient       = IBMConnector(commandCallback)
     time.sleep(1)
-    csvPersistor     = CSVPersistor()
+    csvPersistor     = CSVPersistor("Plant1")
     time.sleep(1)
 
     #Sensors

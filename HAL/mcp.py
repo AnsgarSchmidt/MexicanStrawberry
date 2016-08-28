@@ -100,7 +100,7 @@ if __name__ == '__main__':
 
         if not GPIO.input(12):
             print "Silence"
-            timeToSilence = time.time() + 10
+            timeToSilence = time.time() + 60 * 60
 
         if timeToSilence > time.time():
             print "REMAINE SILENCE"

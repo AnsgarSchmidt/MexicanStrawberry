@@ -33,7 +33,6 @@ class CSVPersistor(threading.Thread):
         self.file_name = "%d-%d-%d-%d.csv" % (now.year, now.month, now.day, now.hour)
         self.start()
 
-
     def getSwiftConnection(self):
         return swiftclient.Connection(key          = self.password,
                                       authurl      = self.auth_url,
@@ -61,10 +60,14 @@ class CSVPersistor(threading.Thread):
         self.q.put(measurements)
 
     def run(self):
+
         while True:
+
             now = datetime.datetime.now()
             file_name = "%d-%d-%d-%d.csv" % (now.year, now.month, now.day, now.hour)
+
             if file_name != self.file_name:
+
                 # upload old file
                 print "new file, upload old"
 
@@ -83,38 +86,48 @@ class CSVPersistor(threading.Thread):
 
                 with open(self.file_name, 'ab') as csvfile:
                     spamwriter = csv.writer(csvfile, delimiter=',')
-                    d = ['Timestamp','WaterTemp','SystemCPUTemp','SystemGPUTemp','SystemLoadLevel','SystemCPUUse',
-                        'OutsideSensorTemperature','OutsideSensorHumidity','InsideSensorTemperature',
-                        'InsideSensorHumidity','FanIN', 'FanOUT', 'Humidifier','Hatch', 'SidePressure',
-                        'SidePressureTrent', 'SideHumidity', 'SidePreciptionHourly', 'SidePreciptionTotal',
-                        'SideUV'
+                    d = ['Timestamp',
+                         'Watertemperature',
+                         'InsideHumidity',
+                         'InsideTemperature',
+                         'OutsideHumidity',
+                         'OutsideTemperature',
+                         'CPUTemperature',
+                         'GPUTemperature',
+                         'CPUUsage',
+                         'Loadlevel',
+                         'WeatherHumidity',
+                         'WeatherPressure',
+                         'WeatherPressureTrent',
+                         'WeatherUV',
+                         'WeatherPreciptionTotal',
+                         'WeatherPreciptionHourly'
                     ]
                     spamwriter.writerow(d)
+
             if not self.q.empty():
+
                 m = self.q.get()
+
                 with open(self.file_name, 'ab') as csvfile:
                     spamwriter = csv.writer(csvfile, delimiter=',')
                     d = [
-                        measurements['Timestamp'],
-                        measurements['WaterTemp'],
-                        measurements['SystemCPUTemp'],
-                        measurements['SystemGPUTemp'],
-                        measurements['SystemLoadLevel'],
-                        measurements['SystemCPUUse'],
-                        measurements['OutsideSensorTemperature'],
-                        measurements['OutsideSensorHumidity'],
-                        measurements['InsideSensorTemperature'],
-                        measurements['InsideSensorHumidity'],
-                        measurements['FanIN'],
-                        measurements['FanOUT'],
-                        measurements['Humidifier'],
-                        measurements['Hatch'],
-                        measurements['SidePressure'],
-                        measurements['SidePressureTrent'],
-                        measurements['SideHumidity'],
-                        measurements['SidePreciptionHourly'],
-                        measurements['SidePreciptionTotal'],
-                        measurements['SideUV']
+                         m['Timestamp'],
+                         m['Watertemperature'],
+                         m['InsideHumidity'],
+                         m['InsideTemperature'],
+                         m['OutsideHumidity'],
+                         m['OutsideTemperature'],
+                         m['CPUTemperature'],
+                         m['GPUTemperature'],
+                         m['CPUUsage'],
+                         m['Loadlevel'],
+                         m['WeatherHumidity'],
+                         m['WeatherPressure'],
+                         m['WeatherPressureTrent'],
+                         m['WeatherUV'],
+                         m['WeatherPreciptionTotal'],
+                         m['WeatherPreciptionHourly']
                     ]
                     spamwriter.writerow(d)
                 self.q.task_done()

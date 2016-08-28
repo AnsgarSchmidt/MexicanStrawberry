@@ -58,6 +58,7 @@ client.subscribeToDeviceStatus()
 client.subscribeToDeviceEvents(deviceId="Plant1")
 
 time.sleep(1)
+
 setOUTFan(5)
 
 time.sleep(10)

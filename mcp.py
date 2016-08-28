@@ -16,7 +16,7 @@ def myEventCallback(event):
   str = "%s event '%s' received from device [%s]: %s"
   #print(str % (event.format, event.event, event.device, json.dumps(event.data)))
   measurement = event.data['d']
-  print "%02.1f - Hum:%d - Hatch:%d - OUT:%d - IN%d" % (measurement['test1'],measurement['test2'],measurement['test2'],measurement['test4'],measurement['test5'])
+  print "%02.1f - Hum:%d - Hatch:%d - OUT:%d - IN%d" % (measurement['InsideHumidity'],measurement['Humidifier'],measurement['Hatch'],measurement['OutsideFan'],measurement['InsideFan'])
 
 def myStatusCallback(status):
   if status.action == "Disconnect":
@@ -55,6 +55,9 @@ client.connect()
 client.deviceEventCallback  = myEventCallback
 client.deviceStatusCallback = myStatusCallback
 client.subscribeToDeviceStatus()
-client.subscribeToDeviceEvents(deviceId="dummyposter")
+client.subscribeToDeviceEvents(deviceId="Plant1")
 
-time.sleep(5)
+time.sleep(1)
+setOUTFan(5)
+
+time.sleep(10)

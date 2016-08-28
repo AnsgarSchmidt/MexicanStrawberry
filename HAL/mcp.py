@@ -8,6 +8,7 @@ from Weather              import Weather
 from CSVPersistor         import CSVPersistor
 from TimedDigitalActuator import TimedDigitalActuator
 from Hatch                import Hatch
+from Picture              import Picture
 
 def commandCallback(cmd):
         print("Command received: %s" % cmd.command)
@@ -15,29 +16,29 @@ def commandCallback(cmd):
             if 'time' not in cmd.data:
                 print("Error - FanIN is missing required information: 'time'")
             else:
-                pass
+                insideFan.setTime(cmd.data['time'])
 
         elif cmd.command == "FanOUT":
             if 'time' not in cmd.data:
                 print("Error - FanOUT is missing required information: 'time'")
             else:
-                pass
+                insideFan.setTime(cmd.data['time'])
 
         elif cmd.command == "Humidifier":
             if 'time' not in cmd.data:
                 print("Error - Humidifier is missing required information: 'time'")
             else:
-                pass
+                humidifier.setTime(cmd.data['time'])
 
         elif cmd.command == "Hatch":
             if 'value' not in cmd.data:
                 print("Error - Hatch is missing required information: 'value'")
             else:
                 if cmd.data['value'] >= 0 and cmd.data['value'] <= 1:
-                    pass
+                    hatch.setHatch(cmd.data['value'])
 
         elif cmd.command == "Picture":
-            pass
+            picture.makePicture()
 
         else:
             print "Unknown command"
@@ -72,6 +73,10 @@ if __name__ == '__main__':
     humidifier = TimedDigitalActuator(16)
     time.sleep(1)
     hatch = Hatch()
+    time.sleep(1)
+
+    #picture
+    picture = Picture("Plant1")
 
     while True:
         now = datetime.datetime.now()

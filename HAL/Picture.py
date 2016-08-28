@@ -51,6 +51,8 @@ class Picture(threading.Thread):
             self.configOK    = False
             print "Error in configuration for swift client"
 
+        self.start()
+
     def makePicture(self):
         self.makepic = True
 

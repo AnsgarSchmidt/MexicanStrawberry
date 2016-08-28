@@ -13,6 +13,7 @@ class TimedDigitalActuator(threading.Thread):
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.pin, GPIO.OUT)
+        self.start()
 
     def setTime(self, timeToAdd):
         self.timeToKeepOn = time.time() + timeToAdd

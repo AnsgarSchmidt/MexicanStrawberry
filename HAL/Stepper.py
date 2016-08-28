@@ -13,6 +13,7 @@ class Stepper(threading.Thread):
 
     def __init__(self):
         threading.Thread.__init__(self)
+        self.setDaemon(True)
         self.timeToKeepOn =   0
         self.status       =   0
         self.direction    = False

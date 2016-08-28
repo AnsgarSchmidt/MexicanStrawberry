@@ -10,6 +10,7 @@ class SystemData(threading.Thread):
         self.gpu_temp   = 0
         self.cpu_use    = 0
         self.load_level = 0
+        self.start()
 
     def getCPUTemp(self):
         return self.cpu_temp

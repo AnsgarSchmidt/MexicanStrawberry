@@ -10,6 +10,7 @@ class DHT(threading.Thread):
         self.temperature = 0
         self.humidity    = 0
         self.pin         = pin
+        self.start()
 
     def getTemperature(self):
         return self.temperature

@@ -2,13 +2,15 @@ import threading
 import os
 import time
 
-class WaterTemp(threading.Thread):
+class Dallas(threading.Thread):
+
     def __init__(self):
         threading.Thread.__init__(self)
         self.setDaemon(True)
         os.system('modprobe w1-gpio')
         os.system('modprobe w1-therm')
         self.temp_c = 0
+        self.start()
 
     def read_temp_raw(self):
         f = open('/sys/bus/w1/devices/28-001454a22eff/w1_slave', 'r')
@@ -35,7 +37,7 @@ class WaterTemp(threading.Thread):
             time.sleep(1)
 
 if __name__ == '__main__':
-    w = WaterTemp()
+    w = Dallas()
     w.start()
     time.sleep(2)
     print w.getWaterTemp()

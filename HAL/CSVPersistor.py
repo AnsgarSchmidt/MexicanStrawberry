@@ -53,6 +53,7 @@ class CSVPersistor(threading.Thread):
 
         now = datetime.datetime.now()
         self.file_name = "%d-%d-%d-%d.csv" % (now.year, now.month, now.day, now.hour)
+        self.start()
 
     def persist(self, measurements):
         self.q.put(measurements)

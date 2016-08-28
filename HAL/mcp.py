@@ -1,27 +1,7 @@
-import ibmiotf.device
 import time
-import json
-
-PIN_DALLAS         =  4
-PIN_LED_1          =  7
-PIN_LED_2          =  8
-PIN_BUTTON_SILENCE = 12
-
-def connectToIBM():
-    client = ibmiotf.device.Client(json.load(open("clientconfig.txt")))
-    client.connect()
-    return client
-
-def pushDataToIBM(client, measurements):
-    measurements['test1'] = 42
-    measurements['test2'] = 23
-    measurements['test3'] = 234
-    measurements['test4'] = 424
-    measurements['test5'] = 23356
-    data = {}
-    data['d'] = measurements
-    client.publishEvent("Plant1", "json", data)
-    print "Data send:" + str(data)
+from IBMConnector import IBMConnector
+from Dallas       import Dallas
+from DHT          import DHT
 
 def commandCallback(cmd):
         print("Command received: %s" % cmd.command)
@@ -60,11 +40,17 @@ def commandCallback(cmd):
 if __name__ == '__main__':
     print "MS HAL start"
 
-    client = connectToIBM()
-    client.commandCallback = commandCallback
-    time.sleep(1)
+    iotfClient       = IBMConnector(commandCallback)
+    waterTemperature = Dallas()
+    airInside        = DHT(23)
+    airOutside       = DHT(24)
 
     while True:
         m = {}
-        pushDataToIBM(client, m)
+        m['Watertemperature']   = waterTemperature.getWaterTemp()
+        m['InsideHumidity']     = airInside.getHumidity()
+        m['InsideTemperature']  = airInside.getTemperature()
+        m['OutsideHumidity']    = airOutside.getHumidity()
+        m['OutsideTemperature'] = airOutside.getTemperature()
+        iotfClient.pushDataToIBM(m)
         time.sleep(1)

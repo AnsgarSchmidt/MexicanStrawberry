@@ -15,6 +15,7 @@ class Weather(threading.Thread):
         self.precip_hrly        = 0
         self.precip_total       = 0
         self.uv_index           = 0
+        self.start()
 
     def updateWeather(self):
         password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()

@@ -28,6 +28,7 @@ class Stepper(threading.Thread):
         GPIO.output(PIN_DIRECTION, self.direction)
         GPIO.output(PIN_STEP,      False         )
         self.calibrate()
+        self.start()
 
     def calibrate(self):
         print "Start Calibrating"
@@ -39,7 +40,6 @@ class Stepper(threading.Thread):
         GPIO.output(PIN_ENABLE, True)  # inverted therefore we switch it off
         self.counter = 0
         print "Calibration Done"
-        self.start()
 
     def setTime(self, timeToAdd):
         self.timeToKeepOn = time.time() + timeToAdd

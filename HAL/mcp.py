@@ -7,6 +7,7 @@ from SystemData           import SystemData
 from Weather              import Weather
 from CSVPersistor         import CSVPersistor
 from TimedDigitalActuator import TimedDigitalActuator
+from Hatch                import Hatch
 
 def commandCallback(cmd):
         print("Command received: %s" % cmd.command)
@@ -64,12 +65,13 @@ if __name__ == '__main__':
     time.sleep(1)
 
     #Actuators
-    outsideFan = TimedDigitalActuator(21)
+    outsideFan = TimedDigitalActuator(20)
     time.sleep(1)
-    insideFan  = TimedDigitalActuator(20)
+    insideFan  = TimedDigitalActuator(21)
     time.sleep(1)
     humidifier = TimedDigitalActuator(16)
     time.sleep(1)
+    hatch = Hatch()
 
     while True:
         now = datetime.datetime.now()
@@ -93,6 +95,7 @@ if __name__ == '__main__':
         m['OutsideFan']              = outsideFan.getState()
         m['InsideFan']               = insideFan.getState()
         m['Humidifier']              = humidifier.getState()
+        m['Hatch']                   = hatch.getHatch()
         iotfClient.pushDataToIBM(m)
         csvPersistor.persist(m)
         time.sleep(1)

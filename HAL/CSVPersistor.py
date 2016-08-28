@@ -104,7 +104,8 @@ class CSVPersistor(threading.Thread):
                          'WeatherPreciptionHourly',
                          'OutsideFan',
                          'InsideFan',
-                         'Humidifier'
+                         'Humidifier',
+                         'Hatch'
                     ]
                     spamwriter.writerow(d)
 
@@ -133,7 +134,8 @@ class CSVPersistor(threading.Thread):
                          m['WeatherPreciptionHourly'],
                          m['OutsideFan'],
                          m['InsideFan'],
-                         m['Humidifier']
+                         m['Humidifier'],
+                         m['Hatch']
                     ]
                     spamwriter.writerow(d)
                 self.q.task_done()

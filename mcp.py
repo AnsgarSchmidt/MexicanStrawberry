@@ -45,6 +45,10 @@ def setOUTFan(value):
     commandData = {'time': value}
     client.publishCommand("RPi", "Plant1", "FanOUT", "json", commandData)
 
+def setLightMovement(value):
+    commandData = {'time': value}
+    client.publishCommand("RPi", "Plant1", "Stepper", "json", commandData)
+
 client = ibmiotf.application.Client(options)
 client.connect()
 client.deviceEventCallback  = myEventCallback
@@ -53,7 +57,14 @@ client.subscribeToDeviceStatus()
 client.subscribeToDeviceEvents(deviceId="Plant1")
 
 time.sleep(1)
+setLightMovement(60)
+time.sleep(1)
+setHatch(0)
+time.sleep(1)
+setHumidifier(60)
+time.sleep(1)
+setINFan(60)
+time.sleep(1)
+setOUTFan(60)
 
-setHumidifier(2)
-
-time.sleep(10)
+time.sleep(60)

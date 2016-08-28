@@ -21,6 +21,6 @@ class IBMConnector():
             data = {}
             data['d'] = measurements
             self.client.publishEvent("Measurements", "json", data)
-            print "Data send:" + str(data)
+            #print "Data send:" + str(data)
         except:
             self.connectToIBM()

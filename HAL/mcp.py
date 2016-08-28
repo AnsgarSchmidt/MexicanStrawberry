@@ -22,7 +22,7 @@ def commandCallback(cmd):
             if 'time' not in cmd.data:
                 print("Error - FanOUT is missing required information: 'time'")
             else:
-                insideFan.setTime(cmd.data['time'])
+                outsideFan.setTime(cmd.data['time'])
 
         elif cmd.command == "Humidifier":
             if 'time' not in cmd.data:

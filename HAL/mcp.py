@@ -1,5 +1,6 @@
 import time
 import datetime
+import RPi.GPIO           as     GPIO
 from IBMConnector         import IBMConnector
 from Dallas               import Dallas
 from DHT                  import DHT
@@ -89,7 +90,16 @@ if __name__ == '__main__':
     #picture
     picture = Picture("Plant1")
 
+    #silencer
+    GPIO.setwarnings(False)
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
     while True:
+
+        if not GPIO.input(12):
+            print "Silence"
+
         now = datetime.datetime.now()
         m = {}
         m['Timestamp']               = "%d-%d-%d-%d-%d-%d" % (now.year, now.month, now.day, now.hour, now.minute, now.second)

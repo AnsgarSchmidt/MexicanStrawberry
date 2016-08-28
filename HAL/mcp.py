@@ -94,11 +94,21 @@ if __name__ == '__main__':
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    timeToSilence = 0
 
     while True:
 
         if not GPIO.input(12):
             print "Silence"
+            timeToSilence = time.time() + 10
+
+        if timeToSilence > time.time():
+            print "REMAINE SILENCE"
+            hatch.setHatch(1)
+            insideFan.setTime(0)
+            outsideFan.setTime(0)
+            humidifier.setTime(0)
+            stepper.setTime(0)
 
         now = datetime.datetime.now()
         m = {}

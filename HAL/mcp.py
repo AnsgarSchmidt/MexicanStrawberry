@@ -11,7 +11,9 @@ from Hatch                import Hatch
 from Picture              import Picture
 
 def commandCallback(cmd):
+
         print("Command received: %s" % cmd.command)
+
         if cmd.command == "FanIN":
             if 'time' not in cmd.data:
                 print("Error - FanIN is missing required information: 'time'")

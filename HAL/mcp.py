@@ -20,22 +20,22 @@ def commandCallback(cmd):
             return
 
         if cmd.command == "FanIN":
-            if 'time' not in cmd.data:
-                print("Error - FanIN is missing required information: 'time'")
+            if 'value' not in cmd.data:
+                print("Error - FanIN is missing required information: 'value'")
             else:
-                insideFan.setTime(cmd.data['time'])
+                insideFan.setTime(cmd.data['value'])
 
         elif cmd.command == "FanOUT":
-            if 'time' not in cmd.data:
-                print("Error - FanOUT is missing required information: 'time'")
+            if 'value' not in cmd.data:
+                print("Error - FanOUT is missing required information: 'value'")
             else:
-                outsideFan.setTime(cmd.data['time'])
+                outsideFan.setTime(cmd.data['value'])
 
         elif cmd.command == "Humidifier":
-            if 'time' not in cmd.data:
-                print("Error - Humidifier is missing required information: 'time'")
+            if 'value' not in cmd.data:
+                print("Error - Humidifier is missing required information: 'value'")
             else:
-                humidifier.setTime(cmd.data['time'])
+                humidifier.setTime(cmd.data['value'])
 
         elif cmd.command == "Hatch":
             if 'value' not in cmd.data:
@@ -45,10 +45,10 @@ def commandCallback(cmd):
                     hatch.setHatch(cmd.data['value'])
 
         elif cmd.command == "Stepper":
-            if 'time' not in cmd.data:
-                print("Error - Stepper is missing required information: 'time'")
+            if 'value' not in cmd.data:
+                print("Error - Stepper is missing required information: 'value'")
             else:
-                stepper.setTime(cmd.data['time'])
+                stepper.setTime(cmd.data['value'])
 
         elif cmd.command == "Picture":
             picture.makePicture()

@@ -14,26 +14,26 @@ from Stepper              import Stepper
 
 def commandCallback(cmd):
 
-        print("Command received: %s with data: %s" % (cmd.command,cmd.data))
+        print("Command received: %s with data: %s" % (cmd.command, cmd.data.d.value))
 
         if alloff:
             return
 
         if cmd.command == "InsideFan":
-            insideFan.setTime(cmd.data)
+            insideFan.setTime(cmd.data.d.value)
 
         elif cmd.command == "OutsideFan":
-            outsideFan.setTime(cmd.data)
+            outsideFan.setTime(cmd.data.d.value)
 
         elif cmd.command == "Humidifier":
-            humidifier.setTime(cmd.data)
+            humidifier.setTime(cmd.data.d.value)
 
         elif cmd.command == "Hatch":
             if cmd.data >= 0 and cmd.data <= 1:
-                hatch.setHatch(cmd.data)
+                hatch.setHatch(cmd.data.d.value)
 
         elif cmd.command == "Stepper":
-            stepper.setTime(cmd.data)
+            stepper.setTime(cmd.data.d.value)
 
         elif cmd.command == "Picture":
             picture.makePicture()

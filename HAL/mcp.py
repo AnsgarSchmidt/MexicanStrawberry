@@ -14,7 +14,7 @@ from Stepper              import Stepper
 
 def commandCallback(cmd):
 
-        print("Command received: %s" % cmd.command)
+        print("Command received: %s with data: %s" % (cmd.command,cmd.data))
 
         if alloff:
             return

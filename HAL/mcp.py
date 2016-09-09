@@ -1,4 +1,5 @@
 import time
+import json
 import datetime
 import RPi.GPIO           as     GPIO
 from IBMConnector         import IBMConnector
@@ -14,26 +15,29 @@ from Stepper              import Stepper
 
 def commandCallback(cmd):
 
-        print("Command received: %s with data: %s" % (cmd.command, cmd.data.d.value))
+        print("Command received: %s with data: %s" % (cmd.command, cmd.data))
+
+        data = json.loads(cmd.data)
+        value = data.d.value
 
         if alloff:
             return
 
         if cmd.command == "InsideFan":
-            insideFan.setTime(cmd.data.d.value)
+            insideFan.setTime(value)
 
         elif cmd.command == "OutsideFan":
-            outsideFan.setTime(cmd.data.d.value)
+            outsideFan.setTime(value)
 
         elif cmd.command == "Humidifier":
-            humidifier.setTime(cmd.data.d.value)
+            humidifier.setTime(value)
 
         elif cmd.command == "Hatch":
-            if cmd.data >= 0 and cmd.data <= 1:
-                hatch.setHatch(cmd.data.d.value)
+            if value >= 0 and value <= 1:
+                hatch.setHatch(value)
 
         elif cmd.command == "Stepper":
-            stepper.setTime(cmd.data.d.value)
+            stepper.setTime(value)
 
         elif cmd.command == "Picture":
             picture.makePicture()

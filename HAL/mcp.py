@@ -42,7 +42,7 @@ def commandCallback(cmd):
             picture.makePicture()
 
         else:
-            print "Unknown command"
+            print "Unknown command, ignore"
             print(cmd.command)
 
 if __name__ == '__main__':

@@ -19,13 +19,13 @@ def commandCallback(cmd):
         if alloff:
             return
 
-        if cmd.command == "FanIN":
+        if cmd.command == "InsideFan":
             if 'value' not in cmd.data:
                 print("Error - FanIN is missing required information: 'value'")
             else:
                 insideFan.setTime(cmd.data['value'])
 
-        elif cmd.command == "FanOUT":
+        elif cmd.command == "OutsideFan":
             if 'value' not in cmd.data:
                 print("Error - FanOUT is missing required information: 'value'")
             else:

@@ -17,8 +17,7 @@ def commandCallback(cmd):
 
         print("Command received: %s with data: %s" % (cmd.command, cmd.data))
 
-        data = json.loads(cmd.data)
-        value = data.d.value
+        value = cmd.data['d']['value']
 
         if alloff:
             return
